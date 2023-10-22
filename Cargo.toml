@@ -1,0 +1,14 @@
+[package]
+name = "toretsu"
+version = "0.1.1"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rayon = "1.8"
+names = { version = "0.14.0", default-features = false }
+uuid = { version = "1.4.1", features = ["v4","fast-rng"] }
+
+[dev-dependencies]
+rand = "0.8.4"
