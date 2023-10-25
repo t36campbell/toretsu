@@ -26,7 +26,10 @@ where
 {
     fn generate_name() -> String {
         let mut generator = Generator::with_naming(Name::Numbered);
-        generator.next().unwrap()
+        match generator.next() {
+            Some(name) => name,
+            None => "Default Worker".to_string(),
+        }
     }
 
     pub fn init(id: Option<Uuid>, channel: Option<String>, queue: Option<Queue<T>>) -> Self {
