@@ -1,0 +1,16 @@
+# Can also be specified via environment variable `REDIS_HOST`.
+# Default value: "127.0.0.1"
+#redis_host = "127.0.0.1"
+
+# Can also be specified via environment variable `REDIS_PORT`.
+# Default value: 6379
+#redis_port = 6379
+
+# Can also be specified via environment variable `REDIS_USERNAME`.
+#redis_user =
+
+# Can also be specified via environment variable `REDIS_PASSWORD`.
+#redis_pass =
+
+# Can also be specified via environment variable `REDIS_DATABASE`.
+#redis_db =
