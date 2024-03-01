@@ -53,7 +53,7 @@ jobs:
     - name: Run cargo-tarpaulin
       uses: actions-rs/tarpaulin@v0.1
       with:
-        version: 0.27.3
+        version: 0.27.1
         args: --release --all-features --engine llvm --out xml
 
     - name: Upload coverage reports to Codecov
