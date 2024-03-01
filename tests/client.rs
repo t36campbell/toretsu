@@ -69,7 +69,7 @@ mod tests {
                     let content = payload.unwrap();
                     assert_eq!(channel, "test");
                     assert_eq!(content, "Hello World!");
-                    break
+                    break;
                 }
             }
         });
