@@ -36,8 +36,8 @@ impl Client {
             None => "",
         };
 
-        let use_auth = user != "" && pass != "";
-        let use_db = db != "";
+        let use_auth = !user.is_empty() && !pass.is_empty();
+        let use_db = !db.is_empty();
         match (use_auth, use_db) {
             (use_auth, use_db) if use_auth && use_db => {
                 format!("redis://{user}:{pass}@{host}:{port}/{db}")
@@ -58,7 +58,7 @@ impl Client {
         let connection = redis
             .get_connection_with_timeout(timeout)
             .expect("Failed to Connect to Redis");
-        
+
         Self {
             config,
             connection,
