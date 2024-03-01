@@ -54,8 +54,11 @@ impl Client {
         let config = Config::new();
         let timeout = Duration::from_secs(30);
         let conn_url = Self::generate_conn_url(&config);
-        let redis = Redis::open(conn_url).unwrap();
-        let connection = redis.get_connection_with_timeout(timeout).unwrap();
+        let redis = Redis::open(conn_url).expect("Failed to Locate Redis");
+        let connection = redis
+            .get_connection_with_timeout(timeout)
+            .expect("Failed to Connect to Redis");
+        
         Self {
             config,
             connection,

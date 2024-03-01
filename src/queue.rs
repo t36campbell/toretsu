@@ -7,19 +7,13 @@ pub struct Queue<T> {
     heap: BinaryHeap<T>,
 }
 
-impl<T> Default for Queue<T>
-where
-    T: Ord,
-{
+impl<T: Ord> Default for Queue<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> Iterator for Queue<T>
-where
-    T: Ord,
-{
+impl<T: Ord> Iterator for Queue<T> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -27,10 +21,7 @@ where
     }
 }
 
-impl<T> Queue<T>
-where
-    T: Ord,
-{
+impl<T: Ord> Queue<T> {
     pub fn init(id: Uuid, vec: Vec<T>) -> Self {
         Self {
             id,

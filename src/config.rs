@@ -29,6 +29,6 @@ impl Config {
             .file("toretsu.yaml")
             .file("toretsu.toml")
             .load()
-            .unwrap()
+            .expect("Config Not Found")
     }
 }
