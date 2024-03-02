@@ -49,16 +49,3 @@ jobs:
 
     - name: Clippy Check
       run: cargo clippy --release -- -D warnings
-
-    - name: Run cargo-tarpaulin
-      uses: actions-rs/tarpaulin@v0.1
-      with:
-        version: 0.22.0
-        args: --release --engine llvm --out xml
-
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v3
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      with:
-        files: cobertura.xml
