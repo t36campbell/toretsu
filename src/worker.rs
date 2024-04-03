@@ -67,10 +67,10 @@ where
     }
 
     pub fn clock_in(&mut self) {
-        let worker = std::mem::take(self);
-
+        let mut worker = std::mem::take(self);
+        
         rayon::spawn(move || {
-            for mut item in worker.queue {
+            for mut item in worker.queue.drain() {
                 rayon::spawn(move || item.process());
             }
         });
@@ -86,9 +86,7 @@ where
     }
 
     pub fn assign_many(&mut self, vec: Vec<T>) {
-        for task in vec {
-            self.queue.push(task);
-        }
+        self.queue.extend(vec);
         self.clock_in();
     }
 }

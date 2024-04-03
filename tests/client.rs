@@ -1,3 +1,4 @@
+#[cfg(feature = "client")]
 mod tests {
     use redis::ConnectionAddr::{Tcp, TcpTls, Unix};
     use toretsu::client::Client;
@@ -47,31 +48,5 @@ mod tests {
             }
             Unix(_) => todo!(),
         }
-    }
-
-    #[test]
-    fn client_pubsub() {
-        let mut client = Client::new();
-        let timeout = std::time::Duration::from_secs(3);
-        client.set_read_timeout(timeout).unwrap();
-
-        let publish = client.publish("test", "Hello World!");
-        assert!(publish.is_ok());
-        std::thread::spawn(move || {
-            let _ = client.subscribe("test");
-            loop {
-                let m = client.get_message();
-                assert!(m.is_ok());
-                let msg = m.unwrap();
-                let payload: redis::RedisResult<String> = msg.get_payload();
-                if msg.get_channel::<String>().is_ok() && payload.is_ok() {
-                    let channel = msg.get_channel_name();
-                    let content = payload.unwrap();
-                    assert_eq!(channel, "test");
-                    assert_eq!(content, "Hello World!");
-                    break;
-                }
-            }
-        });
     }
 }

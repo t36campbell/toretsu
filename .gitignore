@@ -1,4 +1,4 @@
 /target
-
+/.vscode
 cobertura.xml
 tarpaulin-report.json

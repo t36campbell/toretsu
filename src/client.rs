@@ -1,8 +1,8 @@
 use std::time::Duration;
 
 use redis::{
-    Client as Redis, Commands, Connection, ConnectionInfo, ConnectionLike, ControlFlow, Msg,
-    RedisResult, ToRedisArgs,
+    Client as Redis, Commands, Connection, ConnectionInfo, ConnectionLike, Msg, RedisResult,
+    ToRedisArgs,
 };
 
 use crate::config::Config;
@@ -77,7 +77,10 @@ impl Client {
     pub fn set_read_timeout(&mut self, timeout: Duration) -> RedisResult<()> {
         self.connection.set_read_timeout(Some(timeout))
     }
+}
 
+#[cfg(feature = "pubsub")]
+impl Client {
     pub fn publish<K: ToRedisArgs, E: ToRedisArgs>(
         &mut self,
         channel: K,
@@ -86,41 +89,10 @@ impl Client {
         self.connection.publish(channel, message)
     }
 
-    pub fn subscribe<T: ToRedisArgs>(&mut self, channel: T) -> RedisResult<()> {
+    pub fn listen<T: ToRedisArgs>(&mut self, channel: T) -> RedisResult<Msg> {
         let mut pubsub = self.connection.as_pubsub();
-        pubsub.subscribe(channel)
-    }
-
-    pub fn get_message(&mut self) -> RedisResult<Msg> {
-        let mut pubsub = self.connection.as_pubsub();
+        let _ = pubsub.subscribe(channel);
         pubsub.get_message()
-    }
-
-    pub fn listen<C, F, U>(&mut self, channels: C, mut func: F)
-    where
-        C: ToRedisArgs + std::marker::Send + 'static,
-        F: FnMut(Msg) -> ControlFlow<U> + std::marker::Send + 'static,
-    {
-        let mut client = std::mem::take(self);
-        rayon::spawn(move || {
-            let _ = client.subscribe(channels);
-            loop {
-                let response = match &client.connection.recv_response() {
-                    Ok(res) => Msg::from_value(res),
-                    Err(_) => continue,
-                };
-
-                let msg = match response {
-                    Some(msg) => msg,
-                    None => continue,
-                };
-
-                match func(msg) {
-                    ControlFlow::Continue => continue,
-                    ControlFlow::Break(_) => break,
-                }
-            }
-        });
     }
 
     pub fn unsubscribe<T: ToRedisArgs>(&mut self, channel: T) -> RedisResult<()> {
@@ -128,3 +100,6 @@ impl Client {
         pubsub.unsubscribe(channel)
     }
 }
+
+#[cfg(feature = "backup")]
+impl Client {}

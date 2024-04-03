@@ -166,6 +166,7 @@ mod tests {
     fn queue_with_capacity() {
         let queue: Queue<i32> = Queue::with_capacity(10);
         assert!(queue.is_empty());
+        assert_eq!(queue.len(), 0);
         assert_eq!(queue.capacity(), 10);
     }
 

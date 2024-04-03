@@ -4,8 +4,7 @@ mod tests {
     use confique::yaml::{template as yaml_template, FormatOptions as YamlFormatOptions};
     use toretsu::config::Config;
 
-    // #[test]
-    #[allow(dead_code)]
+    #[test]
     fn generate_conf() {
         let config = Config::new();
 
@@ -25,6 +24,14 @@ mod tests {
     #[test]
     fn new_conf() {
         let config = Config::new();
+
+        assert_eq!(config.redis_host, "localhost");
+        assert_eq!(config.redis_port, 6379);
+    }
+
+    #[test]
+    fn default_conf() {
+        let config = Config::default();
 
         assert_eq!(config.redis_host, "localhost");
         assert_eq!(config.redis_port, 6379);

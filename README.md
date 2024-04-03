@@ -59,8 +59,6 @@ where
 - I think I need to add redis to store a backup of the queue for failover & maintenance 
     - so it can just pick up where it left off
 - Id like to limit how many constraints I have
-- I want to add an `assign` method that accepts a single value or a vector
-    - I tried but didnt like how the union looked - thought it was too complicated for the end-user
 - The queue should mirror all methods of `std::collections::BinaryHeap`
 - Id like to make this available to run via command line, like this `toretsu worker` or `toretsu workers 3`
     - I'll need to implement pub:sub messaging to add work to the queue which can be easily added with redis
