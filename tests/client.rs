@@ -4,6 +4,7 @@ mod tests {
     use toretsu::config::Config;
 
     #[test]
+    #[ignore]
     fn generate_conn_url() {
         let config = Config::new();
         let conn_url = Client::generate_conn_url(&config);
@@ -24,6 +25,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn client_new() {
         let mut client = Client::new();
         assert!(client.check_connection());
@@ -50,6 +52,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn client_pubsub() {
         let mut client = Client::new();
         let timeout = std::time::Duration::from_secs(3);

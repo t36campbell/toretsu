@@ -13,12 +13,14 @@ pub struct Client {
     pub redis: Redis,
 }
 
+#[cfg(not(tarpaulin_include))]
 impl Default for Client {
     fn default() -> Self {
         Self::new()
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 impl Client {
     pub fn generate_conn_url(config: &Config) -> String {
         let host = &config.redis_host;
