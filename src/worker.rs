@@ -67,13 +67,9 @@ where
     }
 
     pub fn clock_in(&mut self) {
-        let worker = std::mem::take(self);
-
-        rayon::spawn(move || {
-            for mut item in worker.queue {
-                rayon::spawn(move || item.process());
-            }
-        });
+        for mut item in self.queue.drain() {
+            rayon::spawn(move || item.process());
+        }
     }
 
     pub fn clock_out(&mut self) {

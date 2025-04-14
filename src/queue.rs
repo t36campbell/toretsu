@@ -70,6 +70,10 @@ impl<T: Ord> Queue<T> {
         self.heap.into_sorted_vec()
     }
 
+    pub fn drain(&mut self) -> std::collections::binary_heap::Drain<'_, T> {
+        self.heap.drain()
+    }
+
     pub fn len(&self) -> usize {
         self.heap.len()
     }

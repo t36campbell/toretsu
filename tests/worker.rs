@@ -122,7 +122,7 @@ mod tests {
         assert_eq!(worker.queue.len(), 10);
 
         worker.clock_in();
-        // assert!(worker.queue.is_empty());
+        assert!(worker.queue.is_empty());
 
         let w = [3, 5, 14, 2, 12, 18, 17, 11, 16, 6].map(|x| Job::new(x, callback));
 
