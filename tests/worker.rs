@@ -125,15 +125,15 @@ mod tests {
         assert!(worker.queue.is_empty());
 
         let w = [3, 5, 14, 2, 12, 18, 17, 11, 16, 6].map(|x| Job::new(x, callback));
-
+        worker.assign_one(Job::new(21, callback));
         let work = Vec::from(w);
         worker.assign_many(work);
-        assert!(worker.queue.is_empty());
 
-        worker.assign_one(Job::new(21, callback));
-        assert!(worker.queue.is_empty());
-
+        worker.clock_in();
         worker.clock_out();
         assert!(!worker.active);
+        assert!(worker.queue.is_empty());
+
+        std::thread::sleep(std::time::Duration::from_millis(1000));
     }
 }

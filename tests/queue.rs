@@ -39,11 +39,16 @@ mod tests {
         let vector = Vec::from(vec);
 
         let mut queue = Queue::from(vector.clone());
-        assert!(!queue.is_empty());
+        let mut heap = BinaryHeap::from(vector);
         assert_eq!(queue.len(), 10);
+        assert!(!queue.is_empty());
 
-        let mut h1 = BinaryHeap::from(vector);
-        while let Some((a, b)) = h1.pop().zip(queue.pop()) {
+        if let Some((a, b)) = heap.pop().zip(queue.pop()) {
+            assert_eq!(a, Int { v: 18 });
+            assert_eq!(a, b);
+        }
+
+        while let Some((a, b)) = heap.pop().zip(queue.pop()) {
             println!("A: {} | B:{} ", a.v, b.v);
             assert_eq!(a, b);
         }
@@ -55,11 +60,16 @@ mod tests {
         let vector = Vec::from(vec.clone());
 
         let mut queue = Queue::from(vector.clone());
-        assert!(!queue.is_empty());
+        let mut heap = BinaryHeap::<Reverse<Int>>::from(vector);
         assert_eq!(queue.len(), 10);
+        assert!(!queue.is_empty());
 
-        let mut h1 = BinaryHeap::from(vec);
-        while let Some((a, b)) = h1.pop().zip(queue.pop()) {
+        if let Some((a, b)) = heap.pop().zip(queue.pop()) {
+            assert_eq!(a, Reverse(Int { v: 1 }));
+            assert_eq!(a, b);
+        }
+
+        while let Some((a, b)) = heap.pop().zip(queue.pop()) {
             println!("A: {:?} | B:{:?} ", a, b);
             assert_eq!(a, b);
         }
@@ -76,11 +86,11 @@ mod tests {
         let vector = Vec::from(vec);
 
         let mut queue = Queue::from(vector.clone());
-        assert!(!queue.is_empty());
+        let mut heap = BinaryHeap::from(vector);
         assert_eq!(queue.len(), 10);
+        assert!(!queue.is_empty());
 
-        let mut h1 = BinaryHeap::from(vector);
-        while let Some((a, b)) = h1.pop().zip(queue.pop()) {
+        while let Some((a, b)) = heap.pop().zip(queue.pop()) {
             println!("A: {} | B:{} ", a.priority, b.priority);
             assert_eq!(a, b);
         }
@@ -107,11 +117,11 @@ mod tests {
         let vector = Vec::from(vec);
 
         let mut queue = Queue::from(vector.clone());
-        assert!(!queue.is_empty());
+        let mut heap = BinaryHeap::from(vector);
         assert_eq!(queue.len(), 10);
+        assert!(!queue.is_empty());
 
-        let mut h1 = BinaryHeap::from(vector);
-        while let Some((a, b)) = h1.pop().zip(queue.pop()) {
+        while let Some((a, b)) = heap.pop().zip(queue.pop()) {
             println!("A: {} {} {} | B: {} {} {}", a.n, a.d, a.r, b.n, b.d, b.r);
             assert_eq!(a, b);
         }
@@ -152,11 +162,11 @@ mod tests {
         let vector = Vec::from(vec);
 
         let mut queue = Queue::from(vector.clone());
-        assert!(!queue.is_empty());
         assert_eq!(queue.len(), 10);
+        assert!(!queue.is_empty());
 
-        let mut h1 = BinaryHeap::from(vector);
-        while let Some((a, b)) = h1.pop().zip(queue.pop()) {
+        let mut heap = BinaryHeap::from(vector);
+        while let Some((a, b)) = heap.pop().zip(queue.pop()) {
             println!("A: {} {} {} | B: {} {} {}", a.n, a.d, a.r, b.n, b.d, b.r);
             assert_eq!(a, b);
         }
@@ -165,8 +175,8 @@ mod tests {
     #[test]
     fn queue_with_capacity() {
         let queue: Queue<i32> = Queue::with_capacity(10);
-        assert!(queue.is_empty());
         assert_eq!(queue.capacity(), 10);
+        assert!(queue.is_empty());
     }
 
     #[test]

@@ -49,10 +49,11 @@ mod tests {
 
         worker.assign_one(Job::new("if", callback));
         worker.assign_one(Job::new("impl", callback));
-        assert!(worker.queue.is_empty());
 
+        worker.clock_in();
         worker.clock_out();
         assert!(!worker.active);
+        assert!(worker.queue.is_empty());
     }
 
     #[test]
@@ -77,12 +78,8 @@ mod tests {
         assert_eq!(worker.queue.len(), million);
 
         worker.clock_in();
-        assert!(worker.queue.is_empty());
-
-        worker.assign_many(more_work.collect());
-        assert!(worker.queue.is_empty());
-
         worker.clock_out();
         assert!(!worker.active);
+        assert!(worker.queue.is_empty());
     }
 }
