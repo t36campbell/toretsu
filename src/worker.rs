@@ -28,7 +28,7 @@ where
         let mut generator = Generator::with_naming(Name::Numbered);
         match generator.next() {
             Some(name) => name,
-            None => "Default Worker".to_string(),
+            None => String::from("Default Worker"),
         }
     }
 
@@ -50,9 +50,9 @@ where
 
         Self {
             id,
+            queue,
             channel,
             active: true,
-            queue,
         }
     }
 
@@ -67,7 +67,9 @@ where
     }
 
     pub fn clock_in(&mut self) {
-        for mut item in self.queue.drain() {
+        self.active = true;
+
+        for mut item in self.queue.drain_sorted() {
             rayon::spawn(move || item.process());
         }
     }
@@ -78,13 +80,9 @@ where
 
     pub fn assign_one(&mut self, task: T) {
         self.queue.push(task);
-        self.clock_in();
     }
 
-    pub fn assign_many(&mut self, vec: Vec<T>) {
-        for task in vec {
-            self.queue.push(task);
-        }
-        self.clock_in();
+    pub fn assign_many<I: IntoIterator<Item = T>>(&mut self, iter: I) {
+        self.queue.extend(iter);
     }
 }
