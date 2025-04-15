@@ -54,6 +54,18 @@ impl<T: Ord> Queue<T> {
         self.heap.capacity()
     }
 
+    pub fn len(&self) -> usize {
+        self.heap.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.heap.is_empty()
+    }
+
+    pub fn clear(&mut self) {
+        self.heap.clear()
+    }
+
     pub fn push(&mut self, value: T) {
         self.heap.push(value)
     }
@@ -66,8 +78,8 @@ impl<T: Ord> Queue<T> {
         self.heap.peek()
     }
 
-    pub fn into_sorted_vec(self) -> Vec<T> {
-        self.heap.into_sorted_vec()
+    pub fn peek_mut(&mut self) -> Option<std::collections::binary_heap::PeekMut<'_, T>> {
+        self.heap.peek_mut()
     }
 
     pub fn drain(&mut self) -> std::collections::binary_heap::Drain<'_, T> {
@@ -82,9 +94,61 @@ impl<T: Ord> Queue<T> {
 
         vec
     }
+
+    pub fn into_vec(self) -> Vec<T> {
+        self.heap.into_vec()
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.heap.is_empty()
+    pub fn into_sorted_vec(self) -> Vec<T> {
+        self.heap.into_sorted_vec()
+    }
+
+    pub fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
+        self.heap.extend(iter)
+    }
+
+    pub fn append(&mut self, other: &mut Self) {
+        self.heap.append(&mut other.heap)
+    }
+
+    pub fn as_slice(&self) -> &[T] {
+        self.heap.as_slice()
+    }
+
+    pub fn reserve(&mut self, additional: usize) {
+        self.heap.reserve(additional)
+    }
+
+    pub fn shrink_to(&mut self, min_capacity: usize) {
+        self.heap.shrink_to(min_capacity)
+    }
+
+    pub fn shrink_to_fit(&mut self) {
+        self.heap.shrink_to_fit()
+    }
+
+    pub fn retain<F>(&mut self, f: F)
+    where
+        F: FnMut(&T) -> bool,
+    {
+        self.heap.retain(f)
+    }
+
+    pub fn reserve_exact(&mut self, additional: usize) {
+        self.heap.reserve_exact(additional)
+    }
+
+    pub fn try_reserve(
+        &mut self,
+        additional: usize,
+    ) -> Result<(), std::collections::TryReserveError> {
+        self.heap.try_reserve(additional)
+    }
+
+    pub fn try_reserve_exact(
+        &mut self,
+        additional: usize,
+    ) -> Result<(), std::collections::TryReserveError> {
+        self.heap.try_reserve_exact(additional)
     }
 }
