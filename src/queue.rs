@@ -74,8 +74,14 @@ impl<T: Ord> Queue<T> {
         self.heap.drain()
     }
 
-    pub fn len(&self) -> usize {
-        self.heap.len()
+    pub fn drain_sorted(&mut self) -> Vec<T> {
+        let mut vec = Vec::with_capacity(self.len());
+        while let Some(value) = self.next() {
+            vec.push(value);
+        }
+
+        vec
+    }
     }
 
     pub fn is_empty(&self) -> bool {
