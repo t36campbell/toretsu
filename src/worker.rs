@@ -53,10 +53,7 @@ where
             None => Self::generate_name(),
         };
 
-        let queue = match queue {
-            Some(queue) => queue,
-            None => Queue::new(),
-        };
+        let queue = queue.unwrap_or_default();
 
         Self {
             id,
