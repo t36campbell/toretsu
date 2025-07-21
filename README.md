@@ -54,6 +54,28 @@ where
 }
 ```
 
+## Development
+
+This project uses a `rust-toolchain.toml` file to ensure consistent Rust toolchain versions across local development and CI.
+
+### Running the same checks as CI locally
+
+To run the same linting and formatting checks that run in CI:
+
+```bash
+# Format check (same as CI)
+cargo fmt --all -- --check
+
+# Clippy check with warnings as errors (same as CI)
+cargo clippy --release -- -D warnings
+
+# Run tests
+cargo test
+
+# Run all checks at once
+cargo fmt --all -- --check && cargo clippy --release -- -D warnings && cargo test
+```
+
 ## Project Goals
 - Continue to add documentation to make the library as easy to use as possible
 - I think I need to add redis to store a backup of the queue for failover & maintenance 
