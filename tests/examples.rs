@@ -73,7 +73,6 @@ mod tests {
         };
 
         let work = ints.into_iter().map(|x| Job::new(x, callback));
-        let more_work = work.clone();
         let mut worker = toretsu::worker::Worker::from(work.collect());
         assert_eq!(worker.queue.len(), million);
 

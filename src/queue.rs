@@ -6,7 +6,6 @@ pub struct Queue<T> {
     pub id: Uuid,
     heap: BinaryHeap<T>,
 }
-
 impl<T: Ord> Default for Queue<T> {
     fn default() -> Self {
         Self::new()
@@ -30,10 +29,10 @@ impl<T: Ord> Queue<T> {
     }
 
     pub fn new() -> Self {
-        let id = Uuid::new_v4();
-        let vec = Vec::new();
-
-        Self::init(id, vec)
+        Self {
+            id: Uuid::new_v4(),
+            heap: BinaryHeap::new(),
+        }
     }
 
     pub fn from(vec: Vec<T>) -> Self {
@@ -87,12 +86,7 @@ impl<T: Ord> Queue<T> {
     }
 
     pub fn drain_sorted(&mut self) -> Vec<T> {
-        let mut vec = Vec::with_capacity(self.len());
-        for val in self {
-            vec.push(val);
-        }
-
-        vec
+        self.collect()
     }
 
     pub fn into_vec(self) -> Vec<T> {

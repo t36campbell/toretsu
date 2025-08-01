@@ -30,6 +30,35 @@ worker.assign_one(Job::new("if", callback));
 worker.assign_one(Job::new("impl", callback));
 ```
 
+## Redis Pub/Sub Support
+
+Toretsu now supports adding tasks via Redis Pub/Sub! You can use the `PubSubWorker` to automatically process tasks published to Redis channels.
+
+```rust
+use toretsu::{client::Client, pubsub_task::PubSubTask, worker::PubSubWorker};
+
+// Create a worker that listens to Redis channels
+let mut worker = PubSubWorker::new();
+worker.clock_in();
+
+// Start listening to Redis channels
+let channels = vec!["tasks".to_string(), "urgent_tasks".to_string()];
+worker.start_pubsub_listener(channels);
+
+// Publish tasks via Redis
+let mut client = Client::new();
+let task = PubSubTask::new("task-1".to_string(), "Process data".to_string(), 1);
+let task_json = task.to_json().unwrap();
+client.publish("tasks", task_json).unwrap();
+
+// The worker will automatically receive and process the task!
+```
+
+You can also publish tasks from the command line:
+```bash
+redis-cli PUBLISH tasks '{"id":"task-1","payload":"Hello World","priority":1}'
+```
+
 All you need to do is create a `struct` that implements the `Task` trait, which only has one method (`process`), and ensure it derives `Clone, Copy, Eq, Ord, PartialEq, PartialOrd`
 ```rust
 #[derive(Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
@@ -63,4 +92,4 @@ where
     - I tried but didnt like how the union looked - thought it was too complicated for the end-user
 - The queue should mirror all methods of `std::collections::BinaryHeap`
 - Id like to make this available to run via command line, like this `toretsu worker` or `toretsu workers 3`
-    - I'll need to implement pub:sub messaging to add work to the queue which can be easily added with redis
+    - ✅ **IMPLEMENTED**: Pub/sub messaging to add work to the queue is now available with Redis
