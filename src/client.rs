@@ -68,6 +68,20 @@ impl Client {
         }
     }
 
+    pub fn try_new() -> Result<Self, redis::RedisError> {
+        let config = Config::new();
+        let timeout = Duration::from_secs(30);
+        let conn_url = Self::generate_conn_url(&config);
+        let redis = Redis::open(conn_url)?;
+        let connection = redis.get_connection_with_timeout(timeout)?;
+
+        Ok(Self {
+            config,
+            connection,
+            redis,
+        })
+    }
+
     pub fn check_connection(&mut self) -> bool {
         self.connection.check_connection()
     }
