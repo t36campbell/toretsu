@@ -1,12 +1,13 @@
 #[cfg(test)]
 mod tests {
+    use serde::{Deserialize, Serialize};
     use std::cmp::Reverse;
     use std::collections::BinaryHeap;
 
     use toretsu::queue::Queue;
     use uuid::Uuid;
 
-    #[derive(Clone, Ord, PartialEq, PartialOrd, Eq, Debug)]
+    #[derive(Clone, Ord, PartialEq, PartialOrd, Eq, Debug, Serialize, Deserialize)]
     struct Int {
         v: i32,
     }
@@ -77,7 +78,7 @@ mod tests {
 
     #[test]
     fn queue_from_object() {
-        #[derive(Clone, Ord, PartialEq, PartialOrd, Eq, Debug)]
+        #[derive(Clone, Ord, PartialEq, PartialOrd, Eq, Debug, Serialize, Deserialize)]
         struct Obj {
             priority: i32,
         }
@@ -99,7 +100,7 @@ mod tests {
     #[test]
     fn queue_from_complex_object() {
         use names::{Generator, Name};
-        #[derive(Clone, Ord, PartialEq, PartialOrd, Eq, Debug)]
+        #[derive(Clone, Ord, PartialEq, PartialOrd, Eq, Debug, Serialize, Deserialize)]
         struct Obj {
             n: String,
             d: i32,
@@ -132,7 +133,7 @@ mod tests {
         use names::{Generator, Name};
         use rand::random;
 
-        #[derive(Clone, PartialEq, Eq, Debug)]
+        #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
         struct Obj {
             n: String,
             d: i32,
@@ -215,5 +216,93 @@ mod tests {
                 Int { v: 18 }
             ]
         );
+    }
+
+    #[test]
+    #[ignore = "Requires Redis connection"]
+    fn queue_manual_persistence_and_restore() {
+        use redis::Commands;
+        use toretsu::client::Client;
+
+        #[derive(Clone, Ord, PartialEq, PartialOrd, Eq, Debug, Serialize, Deserialize)]
+        struct TestData {
+            value: i32,
+        }
+
+        // 1. Setup client and create a new queue
+        let mut client = Client::new();
+        let mut queue = Queue::with_redis(&mut client).expect("Failed to create redis queue");
+        let queue_id = queue.id;
+
+        // 2. Push data to the queue
+        queue.push(TestData { value: 10 });
+        queue.push(TestData { value: 20 });
+        queue.push(TestData { value: 5 });
+
+        // 3. Manually persist the queue state to Redis
+        queue.persist(&mut client).expect("Failed to persist queue");
+
+        // 4. Restore the queue from Redis using its ID
+        let mut restored_queue: Queue<TestData> =
+            Queue::restore_from_redis(queue_id, &mut client).expect("Failed to restore queue");
+
+        // 5. Verify the restored queue is identical
+        assert_eq!(restored_queue.id, queue_id);
+        assert_eq!(restored_queue.len(), 3);
+        assert_eq!(restored_queue.pop().unwrap().value, 20);
+        assert_eq!(restored_queue.pop().unwrap().value, 10);
+        assert_eq!(restored_queue.pop().unwrap().value, 5);
+        assert!(restored_queue.is_empty());
+
+        // 6. Clean up the key from Redis
+        let key = format!("toretsu:queue:{}", queue_id);
+        let _: () = client.connection.del(&key).unwrap();
+    }
+
+    #[test]
+    #[ignore = "Requires Redis connection"]
+    fn test_restore_non_existent_queue() {
+        use toretsu::client::Client;
+
+        let mut client = Client::new();
+        let random_id = Uuid::new_v4();
+
+        let result: Result<Queue<i32>, _> = Queue::restore_from_redis(random_id, &mut client);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    #[ignore = "Requires Redis connection"]
+    fn test_persistence_on_clear() {
+        use redis::Commands;
+        use toretsu::client::Client;
+
+        #[derive(Clone, Ord, PartialEq, PartialOrd, Eq, Debug, Serialize, Deserialize)]
+        struct TestData {
+            value: i32,
+        }
+
+        let mut client = Client::new();
+        let mut queue = Queue::<TestData>::with_redis(&mut client).unwrap();
+        let queue_id = queue.id;
+
+        queue.push(TestData { value: 1 });
+        queue.push(TestData { value: 2 });
+        queue.persist(&mut client).unwrap();
+
+        // Now clear and persist again
+        queue.clear();
+        assert_eq!(queue.len(), 0);
+        queue.persist(&mut client).unwrap();
+
+        // Restore and check it's empty
+        let restored_queue: Queue<TestData> =
+            Queue::restore_from_redis(queue_id, &mut client).unwrap();
+        assert_eq!(restored_queue.len(), 0);
+        assert!(restored_queue.is_empty());
+
+        // Clean up
+        let key = format!("toretsu:queue:{}", queue_id);
+        let _: () = client.connection.del(&key).unwrap();
     }
 }

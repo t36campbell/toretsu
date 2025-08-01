@@ -5,9 +5,13 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[example]]
+name = "backup_example"
+path = "examples/backup_example.rs"
+
 [dependencies]
 names = { version = "0.14.0", default-features = false }
-uuid = { version = "1.4.1", features = ["v4","fast-rng"] }
+uuid = { version = "1.4.1", features = ["v4","fast-rng", "serde"] }
 redis = { version = "0.23.3", features = ["json"] }
 serde_json = "1.0.107"
 confique = "0.2.4"
