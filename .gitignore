@@ -2,3 +2,5 @@
 
 cobertura.xml
 tarpaulin-report.json
+.aider*
+.env

@@ -1,6 +1,10 @@
 use std::collections::BinaryHeap;
 
+use redis::{Commands, RedisResult};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
+use crate::client::Client;
 
 pub struct Queue<T> {
     pub id: Uuid,
@@ -150,5 +154,47 @@ impl<T: Ord> Queue<T> {
         additional: usize,
     ) -> Result<(), std::collections::TryReserveError> {
         self.heap.try_reserve_exact(additional)
+    }
+}
+
+impl<'a, T> Queue<T>
+where
+    T: Ord + Serialize + for<'de> Deserialize<'de> + Clone,
+{
+    pub fn with_redis(client: &'a mut Client) -> RedisResult<Self> {
+        let queue = Self::new();
+        queue.persist(client)?;
+        Ok(queue)
+    }
+
+    pub fn persist(&self, client: &mut Client) -> RedisResult<()> {
+        let key = format!("toretsu:queue:{}", self.id);
+        let items = self.heap.iter().cloned().collect::<Vec<_>>();
+        let serialized = serde_json::to_string(&items).map_err(|e| {
+            redis::RedisError::from((
+                redis::ErrorKind::TypeError,
+                "Serialization failed",
+                e.to_string(),
+            ))
+        })?;
+        client.connection.set(&key, serialized)
+    }
+
+    pub fn restore_from_redis(id: Uuid, client: &mut Client) -> RedisResult<Self> {
+        let key = format!("toretsu:queue:{id}");
+        let serialized: String = client.connection.get(&key)?;
+        let items: Vec<T> = serde_json::from_str(&serialized).map_err(|e| {
+            redis::RedisError::from((
+                redis::ErrorKind::TypeError,
+                "Deserialization failed",
+                e.to_string(),
+            ))
+        })?;
+        Ok(Queue::init(id, items))
+    }
+
+    pub fn delete_from_redis(&self, client: &mut Client) -> RedisResult<()> {
+        let key = format!("toretsu:queue:{}", self.id);
+        client.connection.del(&key)
     }
 }

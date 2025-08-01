@@ -136,4 +136,47 @@ mod tests {
 
         std::thread::sleep(std::time::Duration::from_millis(1000));
     }
+
+    #[test]
+    #[ignore = "Requires Redis connection"]
+    fn test_worker_backup_restore() {
+        use serde::{Deserialize, Serialize};
+        use toretsu::client::Client;
+
+        #[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize, Debug)]
+        struct TestJob {
+            id: i32,
+        }
+
+        impl Task for TestJob {
+            fn process(&mut self) {
+                // a simple task
+            }
+        }
+
+        // 1. Setup client and worker
+        let mut client = Client::new();
+        let jobs = vec![TestJob { id: 1 }, TestJob { id: 2 }];
+        let worker = Worker::from(jobs);
+        let queue_id = worker.queue.id;
+        assert_eq!(worker.queue.len(), 2);
+
+        // 2. Backup the worker's queue
+        worker
+            .backup_queue(&mut client)
+            .expect("Failed to backup queue");
+
+        // 3. Simulate failure and restore
+        drop(worker);
+        let restored_worker = Worker::<TestJob>::new_with_restore(queue_id, &mut client);
+
+        // 4. Verify the restored queue
+        assert_eq!(restored_worker.queue.id, queue_id);
+        assert_eq!(restored_worker.queue.len(), 2);
+
+        // 5. Clean up
+        restored_worker
+            .delete_queue_backup(&mut client)
+            .expect("Failed to delete backup");
+    }
 }
