@@ -52,7 +52,7 @@ where
             id,
             queue,
             channel,
-            active: true,
+            active: false,
         }
     }
 

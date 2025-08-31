@@ -30,6 +30,33 @@ worker.assign_one(Job::new("if", callback));
 worker.assign_one(Job::new("impl", callback));
 ```
 
+## Multiple Workers
+
+Toretsu now supports running multiple workers simultaneously for improved performance on multi-core systems:
+
+```rust
+use toretsu::worker_pool::WorkerPool;
+
+// Create a pool with 4 workers
+let mut pool = WorkerPool::new(4);
+
+// Or create from existing tasks and specify worker count
+let tasks = vec![/* your tasks */];
+let mut pool = WorkerPool::from(tasks, 4);
+
+// Start all workers
+pool.clock_in();
+
+// Add more work
+pool.assign_one(new_task);
+pool.assign_many(more_tasks);
+
+// Stop all workers
+pool.clock_out();
+```
+
+The `WorkerPool` automatically distributes tasks across workers and can significantly improve performance for CPU-intensive workloads.
+
 All you need to do is create a `struct` that implements the `Task` trait, which only has one method (`process`), and ensure it derives `Clone, Copy, Eq, Ord, PartialEq, PartialOrd`
 ```rust
 #[derive(Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
