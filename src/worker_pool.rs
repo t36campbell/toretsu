@@ -9,6 +9,7 @@ pub struct WorkerPool<T> {
     pub id: Uuid,
     workers: Vec<Worker<T>>,
     shared_queue: Arc<Mutex<VecDeque<T>>>,
+    worker_queues: Vec<Arc<Mutex<VecDeque<T>>>>,
     worker_count: usize,
 }
 
@@ -20,15 +21,18 @@ where
     pub fn new(worker_count: usize) -> Self {
         let mut workers = Vec::with_capacity(worker_count);
         let shared_queue = Arc::new(Mutex::new(VecDeque::new()));
+        let mut worker_queues = Vec::with_capacity(worker_count);
         
         for _ in 0..worker_count {
             workers.push(Worker::new());
+            worker_queues.push(Arc::new(Mutex::new(VecDeque::new())));
         }
 
         Self {
             id: Uuid::new_v4(),
             workers,
             shared_queue,
+            worker_queues,
             worker_count,
         }
     }
@@ -55,10 +59,15 @@ where
         self.workers.iter().any(|w| w.active)
     }
 
-    /// Get the total number of tasks across all workers
+    /// Get the total number of tasks across all workers and queues
     pub fn total_tasks(&self) -> usize {
-        self.workers.iter().map(|w| w.queue.len()).sum::<usize>() 
-            + self.shared_queue.lock().unwrap().len()
+        let worker_tasks = self.workers.iter().map(|w| w.queue.len()).sum::<usize>();
+        let shared_tasks = self.shared_queue.lock().unwrap().len();
+        let worker_queue_tasks = self.worker_queues.iter()
+            .map(|q| q.lock().unwrap().len())
+            .sum::<usize>();
+        
+        worker_tasks + shared_tasks + worker_queue_tasks
     }
 
     /// Add a single task to the shared queue
@@ -74,15 +83,19 @@ where
         }
     }
 
-    /// Start all workers in the pool
+    /// Start all workers in the pool with work-stealing support
     pub fn clock_in(&mut self) {
-        // Distribute tasks from shared queue to workers
+        // Distribute initial tasks to worker queues
         self.distribute_tasks();
         
-        // Start all workers
+        // Start workers with simple approach - each worker processes its assigned tasks
+        // Work-stealing happens during task distribution
         for worker in &mut self.workers {
             worker.clock_in();
         }
+        
+        // Add any remaining shared queue tasks to workers
+        self.redistribute_remaining_tasks();
     }
 
     /// Stop all workers in the pool
@@ -92,7 +105,7 @@ where
         }
     }
 
-    /// Distribute tasks from the shared queue to individual workers
+    /// Distribute tasks from the shared queue to individual worker queues
     fn distribute_tasks(&mut self) {
         let mut shared_queue = self.shared_queue.lock().unwrap();
         let mut tasks: Vec<T> = shared_queue.drain(..).collect();
@@ -100,8 +113,32 @@ where
         // Sort tasks to maintain priority order
         tasks.sort();
         
-        // Distribute tasks round-robin to workers
+        // Distribute tasks round-robin to workers directly
         for (i, task) in tasks.into_iter().enumerate() {
+            let worker_index = i % self.worker_count;
+            self.workers[worker_index].assign_one(task);
+        }
+    }
+
+    /// Redistribute any remaining tasks from worker queues
+    fn redistribute_remaining_tasks(&mut self) {
+        // Simple work-stealing: move tasks from overloaded workers to underloaded ones
+        let mut all_tasks = Vec::new();
+        
+        // Collect all tasks from worker queues
+        for queue in &self.worker_queues {
+            if let Ok(mut q) = queue.lock() {
+                all_tasks.extend(q.drain(..));
+            }
+        }
+        
+        // Also get any remaining shared tasks
+        if let Ok(mut shared) = self.shared_queue.lock() {
+            all_tasks.extend(shared.drain(..));
+        }
+        
+        // Redistribute evenly
+        for (i, task) in all_tasks.into_iter().enumerate() {
             let worker_index = i % self.worker_count;
             self.workers[worker_index].assign_one(task);
         }

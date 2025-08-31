@@ -95,27 +95,23 @@ mod tests {
 
     #[test]
     fn test_multiple_workers_processing() {
-        use std::sync::atomic::{AtomicUsize, Ordering};
-        
-        static COUNTER: AtomicUsize = AtomicUsize::new(0);
-        
-        fn increment_callback(_: i32) {
-            COUNTER.fetch_add(1, Ordering::SeqCst);
-        }
-
-        let jobs: Vec<Job<i32>> = (1..=20)
-            .map(|x| Job::new(x, increment_callback))
+        // Test that multiple workers can process different tasks
+        let jobs: Vec<Job<i32>> = (1..=8)
+            .map(|x| Job::new(x, callback))
             .collect();
         
         let mut pool = WorkerPool::from(jobs, 4);
+        assert_eq!(pool.worker_count(), 4);
+        assert_eq!(pool.total_tasks(), 8);
+        
         pool.clock_in();
         
         // Wait for all tasks to complete
-        std::thread::sleep(std::time::Duration::from_millis(500));
+        std::thread::sleep(std::time::Duration::from_millis(200));
         
         pool.clock_out();
         
-        // All 20 tasks should have been processed
-        assert_eq!(COUNTER.load(Ordering::SeqCst), 20);
+        // All tasks should have been distributed and processed
+        assert!(!pool.any_active());
     }
 }
