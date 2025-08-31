@@ -3,3 +3,4 @@ pub mod config;
 pub mod queue;
 pub mod task;
 pub mod worker;
+pub mod worker_pool;
